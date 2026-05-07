@@ -27,7 +27,11 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install
-        run: npm ci
+        # Using `npm install` (not `npm ci`) until npm 11's cross-platform
+        # optional-deps lockfile bug is resolved: lockfiles generated on
+        # Windows omit the Linux WASM fallback entries (e.g. @emnapi/*),
+        # which causes `npm ci` to fail on ubuntu runners.
+        run: npm install --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
