@@ -1,0 +1,89 @@
+# --- AI tooling: keep out of repo ---
+.claude/
+.cursor/
+.aider*
+.continue/
+.codeium/
+.windsurfrules
+.ai/
+*.aichat
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Node / pnpm ---
+node_modules/
+dist/
+build/
+out/
+.turbo/
+.vercel/
+.cache/
+.parcel-cache/
+.pnpm-store/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+.eggs/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+*.sqlite3
+*.sqlite3-journal
+
+# --- uv / pdm ---
+.uv/
+__pypackages__/
+
+# --- Local data / cache ---
+data/
+*.db
+postgres-data/
+redis-data/
+
+# --- Audio cache (we cache embeddings, not audio, but just in case) ---
+audio_cache/
+*.mp3
+*.wav
+*.flac
+*.m4a
+*.ogg
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Build / test artifacts ---
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+.storybook-static/
