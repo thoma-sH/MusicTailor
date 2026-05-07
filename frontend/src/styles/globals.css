@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color tokens (OKLCH). Placeholder palette — to be replaced in Phase 4 visual identity. */
+  --color-background: oklch(0.13 0.02 270);
+  --color-foreground: oklch(0.97 0.01 270);
+  --color-muted: oklch(0.20 0.02 270);
+  --color-muted-foreground: oklch(0.70 0.01 270);
+  --color-accent: oklch(0.78 0.18 90);
+  --color-accent-foreground: oklch(0.13 0.02 270);
+
+  /* Typography. Variable display font swap-in happens in Phase 4. */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Inter", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Berkeley Mono", "JetBrains Mono", "Fira Code", monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-feature-settings: "ss01", "tnum", "cv11";
+}
