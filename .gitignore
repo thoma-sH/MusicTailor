@@ -8,6 +8,10 @@
 .ai/
 *.aichat
 
+# --- Local-only planning / design docs (carry between machines manually) ---
+PLAN.local.md
+/docs/local/
+
 # --- Environment & secrets ---
 .env
 .env.*
