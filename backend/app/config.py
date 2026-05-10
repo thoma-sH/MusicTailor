@@ -18,11 +18,13 @@ class Settings(BaseSettings):
     )
     redis_url: str = Field(default="redis://localhost:6379/0")
 
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    cors_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
+    )
 
     spotify_client_id: str = Field(default="")
     spotify_client_secret: str = Field(default="")
-    spotify_redirect_uri: str = Field(default="http://localhost:8000/auth/spotify/callback")
+    spotify_redirect_uri: str = Field(default="http://127.0.0.1:8000/auth/spotify/callback")
     spotify_scopes: list[str] = Field(
         default_factory=lambda: [
             "user-read-private",
@@ -40,7 +42,7 @@ class Settings(BaseSettings):
     genius_access_token: str = Field(default="")
 
     session_secret: str = Field(default="dev-only-change-me")
-    frontend_url: str = Field(default="http://localhost:5173")
+    frontend_url: str = Field(default="http://127.0.0.1:5173")
 
 
 settings = Settings()
