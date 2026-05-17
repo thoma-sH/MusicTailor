@@ -4,7 +4,7 @@ import { cn } from "../lib/utils";
 
 type Props = {
   url: string | null;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 };
 
 /**
@@ -34,7 +34,11 @@ export function PreviewButton({ url, size = "md" }: Props) {
       <span
         className={cn(
           "inline-flex items-center justify-center rounded-full text-[color:var(--color-muted-foreground)]",
-          size === "sm" ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm",
+          size === "sm"
+            ? "h-8 w-8 text-xs"
+            : size === "lg"
+              ? "h-14 w-14 text-base"
+              : "h-10 w-10 text-sm",
         )}
         title="No preview available"
       >
@@ -69,7 +73,11 @@ export function PreviewButton({ url, size = "md" }: Props) {
         aria-label={playing ? "Pause preview" : "Play 30-second preview"}
         className={cn(
           "inline-flex items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] text-[color:var(--color-foreground)] shadow-sm transition hover:scale-105 hover:shadow-md",
-          size === "sm" ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm",
+          size === "sm"
+            ? "h-8 w-8 text-xs"
+            : size === "lg"
+              ? "h-14 w-14 text-base"
+              : "h-10 w-10 text-sm",
         )}
       >
         {playing ? "❚❚" : "▶"}

@@ -6,19 +6,20 @@ import { search } from "../lib/api";
 import type { SearchHit } from "../lib/schemas";
 import { cn } from "../lib/utils";
 
-export type ArtistFilterMode = "any" | "include" | "exclude";
+export type ArtistChipMode = "include" | "exclude";
 
-type Props = {
-  /** Map of artist id → display name (so chips can render names). */
-  artists: { id: string; name: string }[];
-  mode: ArtistFilterMode;
-  onChange: (
-    next: { ids: string[]; names: Record<string, string> },
-    mode: ArtistFilterMode,
-  ) => void;
+export type ArtistChip = {
+  id: string;
+  name: string;
+  mode: ArtistChipMode;
 };
 
-export function ArtistChipFilter({ artists, mode, onChange }: Props) {
+type Props = {
+  artists: ArtistChip[];
+  onChange: (next: ArtistChip[]) => void;
+};
+
+export function ArtistChipFilter({ artists, onChange }: Props) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,18 +41,20 @@ export function ArtistChipFilter({ artists, mode, onChange }: Props) {
 
   function add(hit: SearchHit) {
     if (artists.some((a) => a.id === hit.id)) return;
-    const nextArtists = [...artists, { id: hit.id, name: hit.name }];
-    const names: Record<string, string> = {};
-    for (const a of nextArtists) names[a.id] = a.name;
-    onChange({ ids: nextArtists.map((a) => a.id), names }, mode === "any" ? "include" : mode);
+    onChange([...artists, { id: hit.id, name: hit.name, mode: "include" }]);
     setQ("");
   }
 
+  function toggleMode(id: string) {
+    onChange(
+      artists.map((a) =>
+        a.id === id ? { ...a, mode: a.mode === "include" ? "exclude" : "include" } : a,
+      ),
+    );
+  }
+
   function remove(id: string) {
-    const nextArtists = artists.filter((a) => a.id !== id);
-    const names: Record<string, string> = {};
-    for (const a of nextArtists) names[a.id] = a.name;
-    onChange({ ids: nextArtists.map((a) => a.id), names }, nextArtists.length === 0 ? "any" : mode);
+    onChange(artists.filter((a) => a.id !== id));
   }
 
   return (
@@ -60,37 +63,52 @@ export function ArtistChipFilter({ artists, mode, onChange }: Props) {
         <span className="text-xs font-medium uppercase tracking-wider text-[color:var(--color-muted-foreground)]">
           Artist filter
         </span>
-        <ModeSwitch
-          mode={mode}
-          disabled={artists.length === 0}
-          onChange={(m) => onChange({ ids: artists.map((a) => a.id), names: namesOf(artists) }, m)}
-        />
-      </div>
-      <div
-        className={cn(
-          "flex flex-wrap items-center gap-1.5 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-2 py-2",
-          mode === "include" && "border-[color:var(--color-mint-deep)]/40",
-          mode === "exclude" && "border-[color:var(--color-peach-deep)]/40",
+        {artists.length > 0 && (
+          <span className="text-[10px] uppercase tracking-wider text-[color:var(--color-muted-foreground)]">
+            tap chip to flip include / exclude
+          </span>
         )}
-      >
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-2 py-2">
         {artists.map((a) => (
-          <button
-            type="button"
+          <span
             key={a.id}
-            onClick={() => remove(a.id)}
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition",
-              mode === "exclude"
-                ? "bg-[color:var(--color-peach)]/60 text-[color:var(--color-foreground)] hover:bg-[color:var(--color-peach)]"
-                : "bg-[color:var(--color-mint)]/60 text-[color:var(--color-foreground)] hover:bg-[color:var(--color-mint)]",
+              "inline-flex items-center gap-1 rounded-full pl-2.5 pr-1 py-1 text-xs font-medium transition",
+              a.mode === "include"
+                ? "bg-[color:var(--color-mint)]/60 text-[color:var(--color-foreground)]"
+                : "bg-[color:var(--color-peach)]/60 text-[color:var(--color-foreground)] line-through decoration-1",
             )}
-            aria-label={`Remove ${a.name}`}
           >
-            <span>{a.name}</span>
-            <span aria-hidden className="opacity-60">
+            <button
+              type="button"
+              onClick={() => toggleMode(a.id)}
+              className="flex items-center gap-1.5 outline-none"
+              aria-label={`${a.name} is ${a.mode === "include" ? "included" : "excluded"}. Click to flip.`}
+              aria-pressed={a.mode === "include"}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "inline-flex h-3.5 w-3.5 items-center justify-center rounded-full text-[10px] font-bold no-underline",
+                  a.mode === "include"
+                    ? "bg-[color:var(--color-mint-deep)]/70 text-[color:var(--color-background)]"
+                    : "bg-[color:var(--color-peach-deep)]/70 text-[color:var(--color-background)]",
+                )}
+              >
+                {a.mode === "include" ? "+" : "−"}
+              </span>
+              <span>{a.name}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => remove(a.id)}
+              className="ml-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-[color:var(--color-muted-foreground)] no-underline hover:bg-[color:var(--color-muted)] hover:text-[color:var(--color-foreground)]"
+              aria-label={`Remove ${a.name}`}
+            >
               ×
-            </span>
-          </button>
+            </button>
+          </span>
         ))}
         <input
           type="text"
@@ -100,9 +118,7 @@ export function ArtistChipFilter({ artists, mode, onChange }: Props) {
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          placeholder={
-            mode === "exclude" ? "Type to add an artist to exclude…" : "Type to add an artist…"
-          }
+          placeholder="Type to add an artist…"
           className="min-w-[120px] flex-1 bg-transparent px-1 py-0.5 text-sm outline-none placeholder:text-[color:var(--color-muted-foreground)]"
           aria-label="Search an artist to filter"
         />
@@ -135,56 +151,6 @@ export function ArtistChipFilter({ artists, mode, onChange }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-function namesOf(arr: { id: string; name: string }[]): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const a of arr) out[a.id] = a.name;
-  return out;
-}
-
-function ModeSwitch({
-  mode,
-  disabled,
-  onChange,
-}: {
-  mode: ArtistFilterMode;
-  disabled: boolean;
-  onChange: (m: ArtistFilterMode) => void;
-}) {
-  const options: { v: ArtistFilterMode; label: string }[] = [
-    { v: "include", label: "must include" },
-    { v: "any", label: "no bias" },
-    { v: "exclude", label: "must exclude" },
-  ];
-  return (
-    <div
-      role="toolbar"
-      aria-label="Artist filter mode"
-      className="inline-flex rounded-full border border-[color:var(--color-border)] p-0.5 text-[10px] uppercase tracking-wider"
-    >
-      {options.map((o) => {
-        const active = o.v === mode;
-        return (
-          <button
-            type="button"
-            key={o.v}
-            aria-pressed={active}
-            disabled={disabled && o.v !== "any"}
-            onClick={() => onChange(o.v)}
-            className={cn(
-              "rounded-full px-2 py-1 transition disabled:opacity-40",
-              active
-                ? "bg-[color:var(--color-foreground)] text-[color:var(--color-background)]"
-                : "text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
-            )}
-          >
-            {o.label}
-          </button>
-        );
-      })}
     </div>
   );
 }

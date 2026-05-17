@@ -1,5 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
+
+import { ThemeToggle } from "../components/ThemeToggle";
+import { useAppStore } from "../state/app";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -10,6 +14,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
+  const theme = useAppStore((s) => s.theme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   return (
     <div className="relative min-h-screen text-[color:var(--color-foreground)] antialiased">
       <TopNav />
@@ -35,6 +45,9 @@ function TopNav() {
       <nav className="flex items-center gap-1 text-sm">
         <NavLink to="/">Tailor</NavLink>
         <NavLink to="/presets">Presets</NavLink>
+        <span className="ml-1">
+          <ThemeToggle />
+        </span>
       </nav>
     </header>
   );

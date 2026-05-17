@@ -28,6 +28,8 @@ export function ResultsGrid({ items, outputType, loading }: Props) {
       ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
       : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 
+  const [feature, ...rest] = items;
+
   return (
     <motion.ul
       layout
@@ -36,7 +38,20 @@ export function ResultsGrid({ items, outputType, loading }: Props) {
       aria-label={`${outputType} recommendations`}
     >
       <AnimatePresence initial={false}>
-        {items.map((item, i) => (
+        {feature && outputType !== "artist" && (
+          <motion.li
+            key={`${feature.type}-${feature.id}`}
+            layout
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35 }}
+            className="sm:col-span-2 sm:row-span-2 lg:col-span-2 lg:row-span-2"
+          >
+            <Card item={feature} featured />
+          </motion.li>
+        )}
+        {(outputType === "artist" ? items : rest).map((item, i) => (
           <motion.li
             key={`${item.type}-${item.id}`}
             layout
@@ -53,7 +68,7 @@ export function ResultsGrid({ items, outputType, loading }: Props) {
   );
 }
 
-function Card({ item }: { item: RecommendItem }) {
+function Card({ item, featured = false }: { item: RecommendItem; featured?: boolean }) {
   const accent = TYPE_ACCENT[item.type];
   const isArtist = item.type === "artist";
   return (
@@ -61,6 +76,13 @@ function Card({ item }: { item: RecommendItem }) {
       className="lift relative isolate flex h-full flex-col overflow-hidden rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4"
       style={{ ["--accent" as string]: accent.deep }}
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-1/2 opacity-50 mix-blend-multiply"
+        style={{
+          background: `radial-gradient(120% 100% at 50% 0%, ${accent.soft} 0%, transparent 65%)`,
+        }}
+      />
       <div className="relative mb-3 overflow-hidden rounded-2xl">
         {item.image ? (
           <img
@@ -78,26 +100,52 @@ function Card({ item }: { item: RecommendItem }) {
         )}
         {item.preview_url !== null && (
           <div className="absolute right-3 bottom-3">
-            <PreviewButton url={item.preview_url} />
+            <PreviewButton url={item.preview_url} size={featured ? "lg" : "md"} />
           </div>
         )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="truncate text-base font-medium leading-tight">{item.name}</h3>
+        {featured && (
           <span
-            className="ml-auto shrink-0 rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider"
+            className="absolute top-3 left-3 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.22em] backdrop-blur"
+            style={{ background: `${accent.soft}cc`, color: accent.deep }}
+          >
+            top match
+          </span>
+        )}
+      </div>
+      <div className="relative min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3
+            className={
+              featured
+                ? "truncate font-display text-2xl leading-tight"
+                : "truncate text-base font-medium leading-tight"
+            }
+          >
+            {item.name}
+          </h3>
+          <span
+            className="ml-auto shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] tabular-nums uppercase tracking-wider"
             style={{ background: accent.soft }}
           >
             {item.popularity}
           </span>
         </div>
         {!isArtist && (
-          <p className="mt-0.5 truncate text-sm text-[color:var(--color-muted-foreground)]">
+          <p
+            className={
+              featured
+                ? "mt-1 truncate text-base text-[color:var(--color-muted-foreground)]"
+                : "mt-0.5 truncate text-sm text-[color:var(--color-muted-foreground)]"
+            }
+          >
             {item.artist_name}
           </p>
         )}
-        <p className="mt-2 line-clamp-2 text-xs italic text-[color:var(--color-muted-foreground)]/80">
+        <p
+          className={`mt-2 italic text-[color:var(--color-muted-foreground)]/80 ${
+            featured ? "line-clamp-3 text-sm" : "line-clamp-2 text-xs"
+          }`}
+        >
           {item.why}
         </p>
       </div>
@@ -106,7 +154,7 @@ function Card({ item }: { item: RecommendItem }) {
           href={item.open_url}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--color-foreground)] underline-offset-2 hover:underline"
+          className="relative mt-3 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--color-foreground)] underline-offset-2 hover:underline"
         >
           Open ↗
         </a>

@@ -35,6 +35,36 @@
   --font-mono: ui-monospace, "Berkeley Mono", "JetBrains Mono", monospace;
 }
 
+[data-theme="dark"] {
+  --color-background: oklch(0.16 0.02 280);
+  --color-foreground: oklch(0.94 0.015 85);
+  --color-muted: oklch(0.22 0.025 280);
+  --color-muted-foreground: oklch(0.7 0.02 85);
+  --color-card: oklch(0.21 0.025 280);
+  --color-border: oklch(0.3 0.025 280);
+  --color-ring: oklch(0.78 0.12 295);
+
+  --color-lavender: oklch(0.45 0.1 295);
+  --color-lavender-deep: oklch(0.78 0.15 295);
+  --color-mint: oklch(0.45 0.08 165);
+  --color-mint-deep: oklch(0.78 0.13 165);
+  --color-peach: oklch(0.5 0.08 45);
+  --color-peach-deep: oklch(0.82 0.13 45);
+  --color-sky: oklch(0.45 0.08 230);
+  --color-sky-deep: oklch(0.78 0.13 230);
+}
+
+html {
+  color-scheme: light;
+  transition:
+    background-color 0.4s ease,
+    color 0.3s ease;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 html,
 body,
 #root {
@@ -53,19 +83,41 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 0.45s cubic-bezier(0.2, 0.7, 0.3, 1),
+    color 0.3s ease;
 }
 
-/* Subtle background grain: a single repeating noise layer.
-   Cheap and significantly elevates "feels expensive" perception. */
-body::before {
+/* Two-octave grain stack: coarse (depth) + fine (luxe).
+   The two-octave approach reads as paper rather than noise. */
+body::before,
+body::after {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
+}
+
+body::before {
   opacity: 0.04;
   mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body::after {
+  opacity: 0.025;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='nf'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.4' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23nf)'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] body::before {
+  mix-blend-mode: screen;
+  opacity: 0.06;
+}
+[data-theme="dark"] body::after {
+  mix-blend-mode: screen;
+  opacity: 0.03;
 }
 
 /* === Motion === */

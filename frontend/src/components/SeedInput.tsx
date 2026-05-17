@@ -39,9 +39,22 @@ export function SeedInput({ inputType, selected, onSelect }: Props) {
     function onDocClick(e: MouseEvent) {
       if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
     }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "/" && !selected) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        e.preventDefault();
+        inputRef.current?.focus();
+        setOpen(true);
+      }
+    }
     document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selected]);
 
   const { data, isFetching } = useQuery({
     queryKey: ["search", inputType, q],
@@ -105,8 +118,15 @@ export function SeedInput({ inputType, selected, onSelect }: Props) {
             />
           )}
         </div>
-        <div className="hidden text-xs uppercase tracking-widest text-[color:var(--color-muted-foreground)] sm:block">
-          {TYPE_LABEL[inputType]}
+        <div className="hidden items-center gap-2 sm:flex">
+          {!selected && (
+            <kbd className="rounded border border-[color:var(--color-border)] bg-[color:var(--color-background)] px-1.5 py-0.5 font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
+              /
+            </kbd>
+          )}
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[color:var(--color-muted-foreground)]">
+            {TYPE_LABEL[inputType]}
+          </span>
         </div>
       </div>
 

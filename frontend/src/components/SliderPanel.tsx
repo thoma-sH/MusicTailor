@@ -1,9 +1,10 @@
 import { motion } from "motion/react";
 
-import type { MediaType, Sliders } from "../lib/schemas";
+import type { MediaType } from "../lib/schemas";
 import { useAppStore } from "../state/app";
-import { ArtistChipFilter, type ArtistFilterMode } from "./ArtistChipFilter";
+import { type ArtistChip, ArtistChipFilter } from "./ArtistChipFilter";
 import { Dial } from "./Dial";
+import { SliderRadar } from "./SliderRadar";
 
 type Props = {
   accent: MediaType;
@@ -69,36 +70,39 @@ export function SliderPanel({ accent }: Props) {
         </div>
       )}
 
+      <div className="rounded-2xl border border-[color:var(--color-border)]/60 bg-[color:var(--color-background)]/40 p-4">
+        <SliderRadar sliders={sliders} accent={accent} />
+      </div>
+
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <Dial
-          label="Popularity vs seed"
-          hint="Negative = underground. Positive = bigger hits."
+          label="Popularity"
+          axisLabels={["underground", "popular"]}
+          hint="Push toward smaller artists, or chart hits."
           accent={accent}
           min={-1}
           max={1}
           step={0.05}
           value={sliders.popularity_bias}
           onChange={(v) => setSlider("popularity_bias", v)}
-          formatValue={(v) =>
-            v === 0 ? "neutral" : v > 0 ? `+${v.toFixed(2)} popular` : `${v.toFixed(2)} underground`
-          }
+          formatValue={(v) => (v === 0 ? "neutral" : v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2))}
         />
         <Dial
-          label="Era vs seed"
-          hint="Negative = older. Positive = newer."
+          label="Era"
+          axisLabels={["older", "newer"]}
+          hint="Bias toward older or newer releases."
           accent={accent}
           min={-1}
           max={1}
           step={0.05}
           value={sliders.era_bias}
           onChange={(v) => setSlider("era_bias", v)}
-          formatValue={(v) =>
-            v === 0 ? "neutral" : v > 0 ? `+${v.toFixed(2)} newer` : `${v.toFixed(2)} older`
-          }
+          formatValue={(v) => (v === 0 ? "neutral" : v > 0 ? `+${v.toFixed(2)}` : v.toFixed(2))}
         />
         <Dial
           label="Diversity"
-          hint="0 = pure similarity. 1 = mix more artists."
+          axisLabels={["tight", "scattered"]}
+          hint="How many different artists to mix in."
           accent={accent}
           min={0}
           max={1}
@@ -107,8 +111,9 @@ export function SliderPanel({ accent }: Props) {
           onChange={(v) => setSlider("diversity", v)}
         />
         <Dial
-          label="Discovery radius"
-          hint="0 = tight, only the closest matches. 1 = wide-open exploration."
+          label="Discovery"
+          axisLabels={["close", "wide"]}
+          hint="How far from the seed to explore."
           accent={accent}
           min={0}
           max={1}
@@ -138,25 +143,32 @@ function ArtistFilterSection({ accent: _accent }: { accent: MediaType }) {
   const artistNames = useAppStore((s) => s.artistNames);
   const rememberArtistName = useAppStore((s) => s.rememberArtistName);
 
-  const ids = sliders.artists_include.length ? sliders.artists_include : sliders.artists_exclude;
-  const artists = ids.map((id) => ({ id, name: artistNames[id] ?? prettify(id) }));
+  const artists: ArtistChip[] = [
+    ...sliders.artists_include.map((id) => ({
+      id,
+      name: artistNames[id] ?? prettify(id),
+      mode: "include" as const,
+    })),
+    ...sliders.artists_exclude.map((id) => ({
+      id,
+      name: artistNames[id] ?? prettify(id),
+      mode: "exclude" as const,
+    })),
+  ];
 
   return (
     <ArtistChipFilter
       artists={artists}
-      mode={modeFromSliders(sliders)}
-      onChange={({ ids: nextIds, names }, mode) => {
-        for (const [id, name] of Object.entries(names)) rememberArtistName(id, name);
-        if (mode === "include") {
-          setSlider("artists_include", nextIds);
-          setSlider("artists_exclude", []);
-        } else if (mode === "exclude") {
-          setSlider("artists_exclude", nextIds);
-          setSlider("artists_include", []);
-        } else {
-          setSlider("artists_include", []);
-          setSlider("artists_exclude", []);
-        }
+      onChange={(next) => {
+        for (const a of next) rememberArtistName(a.id, a.name);
+        setSlider(
+          "artists_include",
+          next.filter((a) => a.mode === "include").map((a) => a.id),
+        );
+        setSlider(
+          "artists_exclude",
+          next.filter((a) => a.mode === "exclude").map((a) => a.id),
+        );
       }}
     />
   );
@@ -167,12 +179,6 @@ function prettify(id: string): string {
     .replace(/^a-/, "")
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function modeFromSliders(s: Sliders): ArtistFilterMode {
-  if (s.artists_include.length > 0) return "include";
-  if (s.artists_exclude.length > 0) return "exclude";
-  return "any";
 }
 
 function TagChips({
