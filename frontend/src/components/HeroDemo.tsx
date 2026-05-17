@@ -54,7 +54,7 @@ const CYCLE_MS = 6500;
 
 export function HeroDemo() {
   const [idx, setIdx] = useState(0);
-  const current = CYCLE[idx];
+  const current = CYCLE[idx]!;
 
   useEffect(() => {
     const id = window.setInterval(() => {

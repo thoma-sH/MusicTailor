@@ -121,7 +121,7 @@ export function SliderRadar({ sliders, accent }: Props) {
       if (activeIdx === null) return;
       const local = clientToSvg(e.clientX, e.clientY);
       if (!local) return;
-      const axis = AXES[activeIdx];
+      const axis = AXES[activeIdx]!;
       const angleRad = ((axis.angle - 90) * Math.PI) / 180;
       const ax = Math.cos(angleRad);
       const ay = Math.sin(angleRad);
@@ -155,7 +155,7 @@ export function SliderRadar({ sliders, accent }: Props) {
   }
 
   function bumpValue(i: number, dir: 1 | -1) {
-    const axis = AXES[i];
+    const axis = AXES[i]!;
     const current = sliders[axis.key] as number;
     const next = quantize(current + dir * axis.step, axis.step);
     const min = axis.key === "popularity_bias" || axis.key === "era_bias" ? -1 : 0;
