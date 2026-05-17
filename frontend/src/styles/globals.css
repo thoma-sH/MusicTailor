@@ -1,18 +1,38 @@
 @import "tailwindcss";
 
 @theme {
-  /* Color tokens (OKLCH). Placeholder palette — to be replaced in Phase 4 visual identity. */
-  --color-background: oklch(0.13 0.02 270);
-  --color-foreground: oklch(0.97 0.01 270);
-  --color-muted: oklch(0.20 0.02 270);
-  --color-muted-foreground: oklch(0.70 0.01 270);
-  --color-accent: oklch(0.78 0.18 90);
-  --color-accent-foreground: oklch(0.13 0.02 270);
+  /* === Pastel palette ===
+     Warm cream backdrop, deep-ink text, four pastel accents — one per type. */
+  --color-background: oklch(0.985 0.012 85);
+  --color-foreground: oklch(0.22 0.04 280);
+  --color-muted: oklch(0.94 0.015 85);
+  --color-muted-foreground: oklch(0.52 0.03 280);
+  --color-card: oklch(0.99 0.008 85);
+  --color-border: oklch(0.88 0.02 85);
+  --color-ring: oklch(0.7 0.1 295);
 
-  /* Typography. Variable display font swap-in happens in Phase 4. */
+  /* Accents — one per input/output type. */
+  --color-lavender: oklch(0.85 0.085 295);
+  --color-lavender-deep: oklch(0.55 0.18 295);
+  --color-mint: oklch(0.88 0.080 165);
+  --color-mint-deep: oklch(0.55 0.15 165);
+  --color-peach: oklch(0.87 0.085 45);
+  --color-peach-deep: oklch(0.62 0.15 45);
+  --color-sky: oklch(0.88 0.075 230);
+  --color-sky-deep: oklch(0.55 0.15 230);
+
+  /* Type → color binding. Tailwind reads these as bg-song, bg-album, etc.
+     when used inside theme(). For class-name use we apply them via inline
+     styles, but a few class shortcuts (text-song, ring-song) are exposed. */
+  --color-song: var(--color-lavender);
+  --color-album: var(--color-mint);
+  --color-artist: var(--color-peach);
+  --color-playlist: var(--color-sky);
+
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Inter", system-ui, sans-serif;
-  --font-mono: ui-monospace, "Berkeley Mono", "JetBrains Mono", "Fira Code", monospace;
+  --font-display:
+    "Fraunces", "Iowan Old Style", "Times New Roman", Georgia, serif;
+  --font-mono: ui-monospace, "Berkeley Mono", "JetBrains Mono", monospace;
 }
 
 html,
@@ -21,9 +41,224 @@ body,
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--color-background);
   color: var(--color-foreground);
   font-feature-settings: "ss01", "tnum", "cv11";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle background grain: a single repeating noise layer.
+   Cheap and significantly elevates "feels expensive" perception. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.04;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* === Motion === */
+
+@keyframes blob-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(8vw, -6vh) scale(1.05);
+  }
+  66% {
+    transform: translate(-6vw, 4vh) scale(0.95);
+  }
+}
+
+@keyframes blob-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10vw, 8vh) scale(1.1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.65;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+}
+
+.blob-a {
+  animation: blob-drift-a 22s ease-in-out infinite;
+}
+.blob-b {
+  animation: blob-drift-b 28s ease-in-out infinite;
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* === Slider styling ===
+   Native range with a soft pastel track and a pop-on-grab knob.
+   The filled portion is set via --fill (0..100) on the element. */
+
+input[type="range"].dial {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"].dial::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background:
+    linear-gradient(
+      to right,
+      var(--accent, var(--color-lavender-deep)) 0%,
+      var(--accent, var(--color-lavender-deep)) var(--fill, 50%),
+      var(--color-muted) var(--fill, 50%),
+      var(--color-muted) 100%
+    );
+}
+
+input[type="range"].dial::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-muted);
+}
+
+input[type="range"].dial::-moz-range-progress {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent, var(--color-lavender-deep));
+}
+
+input[type="range"].dial::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--color-card);
+  border: 2px solid var(--accent, var(--color-lavender-deep));
+  margin-top: -8px;
+  box-shadow:
+    0 1px 2px rgba(40, 20, 80, 0.12),
+    0 4px 14px rgba(40, 20, 80, 0.08);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input[type="range"].dial:active::-webkit-slider-thumb {
+  transform: scale(1.18);
+  box-shadow:
+    0 1px 2px rgba(40, 20, 80, 0.12),
+    0 8px 22px rgba(40, 20, 80, 0.15);
+}
+
+input[type="range"].dial::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--color-card);
+  border: 2px solid var(--accent, var(--color-lavender-deep));
+  box-shadow:
+    0 1px 2px rgba(40, 20, 80, 0.12),
+    0 4px 14px rgba(40, 20, 80, 0.08);
+}
+
+input[type="range"].dial:focus {
+  outline: none;
+}
+
+input[type="range"].dial:focus-visible::-webkit-slider-thumb {
+  outline: 3px solid color-mix(in oklch, var(--accent, var(--color-ring)) 50%, transparent);
+  outline-offset: 2px;
+}
+
+/* === Card lift === */
+
+.lift {
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1),
+    box-shadow 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 8px 20px -10px color-mix(in oklch, var(--accent, var(--color-lavender-deep)) 35%, transparent),
+    0 4px 12px -8px rgba(40, 20, 80, 0.1);
+}
+
+/* === Scrollbar polish === */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

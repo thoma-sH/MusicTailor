@@ -65,10 +65,17 @@ class SpotifyClient:
     async def _bearer(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {await self._get_token()}"}
 
-    async def search(self, query: str, *, limit: int = 20) -> dict[str, Any]:
+    async def search(
+        self,
+        query: str,
+        *,
+        types: str = "track",
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        """`types` is a comma-separated list: track|album|artist|playlist."""
         result: dict[str, Any] = await self._client.get(
             "/search",
-            params={"q": query, "type": "track", "limit": limit},
+            params={"q": query, "type": types, "limit": limit},
             headers=await self._bearer(),
         )
         return result
@@ -76,6 +83,42 @@ class SpotifyClient:
     async def get_track(self, track_id: str) -> dict[str, Any]:
         result: dict[str, Any] = await self._client.get(
             f"/tracks/{track_id}",
+            headers=await self._bearer(),
+        )
+        return result
+
+    async def get_artist(self, artist_id: str) -> dict[str, Any]:
+        result: dict[str, Any] = await self._client.get(
+            f"/artists/{artist_id}",
+            headers=await self._bearer(),
+        )
+        return result
+
+    async def get_album(self, album_id: str) -> dict[str, Any]:
+        result: dict[str, Any] = await self._client.get(
+            f"/albums/{album_id}",
+            headers=await self._bearer(),
+        )
+        return result
+
+    async def get_artist_top_tracks(self, artist_id: str, *, market: str = "US") -> dict[str, Any]:
+        result: dict[str, Any] = await self._client.get(
+            f"/artists/{artist_id}/top-tracks",
+            params={"market": market},
+            headers=await self._bearer(),
+        )
+        return result
+
+    async def get_artist_albums(
+        self,
+        artist_id: str,
+        *,
+        limit: int = 20,
+        include_groups: str = "album,single",
+    ) -> dict[str, Any]:
+        result: dict[str, Any] = await self._client.get(
+            f"/artists/{artist_id}/albums",
+            params={"limit": limit, "include_groups": include_groups},
             headers=await self._bearer(),
         )
         return result
