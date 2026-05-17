@@ -44,5 +44,14 @@ class Settings(BaseSettings):
     session_secret: str = Field(default="dev-only-change-me")
     frontend_url: str = Field(default="http://127.0.0.1:5173")
 
+    @property
+    def mock_mode(self) -> bool:
+        """True when no live provider credentials are configured.
+
+        The mock provider serves the recommendation pipeline from a curated
+        in-memory fixture so the app boots and demos without API keys.
+        """
+        return not (self.spotify_client_id and self.spotify_client_secret)
+
 
 settings = Settings()

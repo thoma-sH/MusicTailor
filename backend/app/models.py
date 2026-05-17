@@ -84,3 +84,20 @@ class TrackTag(Base):
     )
     tag: Mapped[str] = mapped_column(Text, primary_key=True)
     weight: Mapped[float] = mapped_column(REAL)
+
+
+class ProviderCache(Base):
+    """Generic (provider, method, key) → JSON cache.
+
+    Used for Last.fm artist.getSimilar / artist.getTopTracks / tag.getTopTracks
+    and any future provider call that needs key-value caching. The dedicated
+    `lastfm_similar_cache` table predates this and stays as-is.
+    """
+
+    __tablename__ = "provider_cache"
+
+    provider: Mapped[str] = mapped_column(Text, primary_key=True)
+    method: Mapped[str] = mapped_column(Text, primary_key=True)
+    key: Mapped[str] = mapped_column(Text, primary_key=True)
+    response_json: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
