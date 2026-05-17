@@ -7,10 +7,12 @@
 .windsurfrules
 .ai/
 *.aichat
+*.patch
 CLAUDE.md
 AGENTS.md
 
 # --- Local-only planning / design docs (carry between machines manually) ---
+PLAN.md
 PLAN.local.md
 /docs/local/
 
